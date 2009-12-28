@@ -19,6 +19,10 @@ package com.arpitonline.superLoader
 	 */ 
 	[Event(name="imageSizeIdentified", type="com.arpitonline.superLoader.SuperLoaderEvent")]
 	
+	/**
+	 * Dispatched when load is complete.
+	 */ 
+	[Event(name="complete", type="flash.events.Event")]
 	
 	/**
 	 * Constructor
@@ -45,6 +49,7 @@ package com.arpitonline.superLoader
 			_request = urlRequest;
 			_stream = new URLStream();
 			_stream.addEventListener(ProgressEvent.PROGRESS, onStreamProgress);
+			_stream.addEventListener(Event.COMPLETE, onLoadComplete);
 			_stream.load(_request);
 		}
 		
@@ -150,6 +155,10 @@ package com.arpitonline.superLoader
 			}
 		}
 		
+		private function onLoadComplete(event:Event):void{
+			dispatchEvent(new Event(Event.COMPLETE));
+		}
+		
 		public function get imageType():String{
 			return _imageType;
 		}
@@ -160,6 +169,10 @@ package com.arpitonline.superLoader
 		
 		public function get imageHeight():Number{
 			return _imageHeight;
+		}
+		
+		public function get imageByteArray():ByteArray{
+			return data;
 		}
 	}
 }

@@ -2,7 +2,9 @@ package {
 	import com.arpitonline.superLoader.SuperLoader;
 	import com.arpitonline.superLoader.SuperLoaderEvent;
 	
+	import flash.display.Loader;
 	import flash.display.Sprite;
+	import flash.events.Event;
 
 	public class SuperLoaderTest extends Sprite
 	{
@@ -12,12 +14,20 @@ package {
 		
 		public function SuperLoaderTest()
 		{
+			stage.scaleMode = "noScale";
+			stage.align = "TL";
+			
 			var sl:SuperLoader = new SuperLoader();
 			sl.addEventListener(SuperLoaderEvent.IMAGE_TYPE_IDENTIFIED, function(event:SuperLoaderEvent):void{
 				trace(sl.imageType);
 			});
 			sl.addEventListener(SuperLoaderEvent.IMAGE_SIZE_IDENTIFIED, function(event:SuperLoaderEvent):void{
-				trace(sl.imageWidth, sl.imageHeight)
+				trace(sl.imageWidth, sl.imageHeight);
+			});
+			sl.addEventListener(Event.COMPLETE, function(event:Event):void{
+				var loader:Loader = new Loader();
+				loader.loadBytes(sl.imageByteArray);
+				addChild(loader);
 			});
 			sl.load(GIF_URL);
 		}
