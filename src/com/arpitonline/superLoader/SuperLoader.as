@@ -65,7 +65,9 @@ package com.arpitonline.superLoader
 			
 			if(!_imageType){
 				checkImageType();
-				parseFunction();
+				if(parseFunction != null){
+					parseFunction();
+				}
 			}
 			else{
 				if(parseFunction != null){
@@ -143,7 +145,7 @@ package com.arpitonline.superLoader
 				parseFunction = null;
 				
 			}catch(e:EOFError){
-				trace("[Error]")
+				//trace("[Error]")
 			}
 		}
 		
@@ -163,7 +165,7 @@ package com.arpitonline.superLoader
 				parseFunction = null;
 				
 			}catch(e:Error){
-				trace("[Error]")
+				//trace("[Error]")
 			}
 		}
 		
@@ -184,7 +186,7 @@ package com.arpitonline.superLoader
 				parseFunction = null;
 				
 			}catch(e:Error){
-				trace("[Error]")
+				//trace("[Error]")
 			}
 		}
 		
