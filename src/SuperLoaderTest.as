@@ -12,6 +12,8 @@ package {
 		private var PNG_URL:String = "http://edgeofthewest.files.wordpress.com/2007/12/calvin.png"
 		private var GIF_URL:String = "http://www.supershareware.com/images/icons/AZ_Paint___Animated_GIF_Editor-38389.gif"
 		
+		
+		
 		public function SuperLoaderTest()
 		{
 			stage.scaleMode = "noScale";
@@ -22,14 +24,14 @@ package {
 				trace(sl.imageType);
 			});
 			sl.addEventListener(SuperLoaderEvent.IMAGE_SIZE_IDENTIFIED, function(event:SuperLoaderEvent):void{
-				trace(sl.imageWidth, sl.imageHeight);
+				trace('image size ided: ->'+sl.imageWidth, sl.imageHeight);
 			});
 			sl.addEventListener(Event.COMPLETE, function(event:Event):void{
 				var loader:Loader = new Loader();
 				loader.loadBytes(sl.imageByteArray);
 				addChild(loader);
 			});
-			sl.load(GIF_URL);
+			sl.load("http://woorkup.com/wp-content/uploads/2009/12/jqp14.jpg");
 		}
 		
 	}

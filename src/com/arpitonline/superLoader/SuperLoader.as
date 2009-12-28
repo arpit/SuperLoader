@@ -4,6 +4,7 @@ package com.arpitonline.superLoader
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.events.ProgressEvent;
+	import flash.events.SecurityErrorEvent;
 	import flash.net.URLRequest;
 	import flash.net.URLStream;
 	import flash.utils.ByteArray;
@@ -22,16 +23,26 @@ package com.arpitonline.superLoader
 	/**
 	 * Dispatched when load is complete.
 	 */ 
-	[Event(name="complete", type="flash.events.Event")]
+	[Event(name="loadComplete", type="com.arpitonline.superLoader.SuperLoaderEvent")]
 	
-	/**
-	 * Constructor
-	 */ 
 	public class SuperLoader extends EventDispatcher{
-		public function SuperLoader(){
-		}
 		
+		private var _stream:URLStream;
 		private var _request:URLRequest;
+		private var _imageWidth:Number;
+		private var _imageHeight:Number;
+		private var data:ByteArray;
+		
+		
+		/**
+	 	* Constructor
+	 	*/ 
+		public function SuperLoader(){
+			_stream = new URLStream();
+			_stream.addEventListener(ProgressEvent.PROGRESS, onStreamProgress);
+			_stream.addEventListener(Event.COMPLETE, onLoadComplete);
+			_stream.addEventListener(SecurityErrorEvent.SECURITY_ERROR, onSecurityError);
+		}
 		
 		public function load(fileURL:String):void{
 			var request:URLRequest = new URLRequest(fileURL);
@@ -40,24 +51,16 @@ package com.arpitonline.superLoader
 		}
 		
 		
-		private var _stream:URLStream;
-		private var _imageWidth:Number;
-		private var _imageHeight:Number;
-		private var data:ByteArray;
-		
 		public function loadRequest(urlRequest:URLRequest):void{
+			_imageWidth = _imageHeight = NaN;
 			_request = urlRequest;
-			_stream = new URLStream();
-			_stream.addEventListener(ProgressEvent.PROGRESS, onStreamProgress);
-			_stream.addEventListener(Event.COMPLETE, onLoadComplete);
 			_stream.load(_request);
+			
 		}
 		
-		private var doRead:Boolean = true;
+		protected var parseFunction:Function;
 		
-		private var parseFunction:Function;
-		
-		private function onStreamProgress(event:ProgressEvent):void{
+		protected function onStreamProgress(event:ProgressEvent):void{
 			_stream.readBytes(data, data.length);
 			
 			if(!_imageType){
@@ -89,25 +92,28 @@ package com.arpitonline.superLoader
 			switch(byte){
 				case 255:	_imageType = ImageType.JPEG;
 							parseFunction = parseAsJPEG;
-							dispatchEvent(new SuperLoaderEvent(SuperLoaderEvent.IMAGE_TYPE_IDENTIFIED));
 							break;
 				case 137: 	_imageType = ImageType.PNG;
 							parseFunction = parseAsPNG;
-							dispatchEvent(new SuperLoaderEvent(SuperLoaderEvent.IMAGE_TYPE_IDENTIFIED));
 							break;
 				case 71:	_imageType = ImageType.GIF;
 							parseFunction = parseAsGIF;
-							dispatchEvent(new SuperLoaderEvent(SuperLoaderEvent.IMAGE_TYPE_IDENTIFIED));
 							break;
 				default:	_imageType = ImageType.UNKNOWN
 							break;
 			}
+			
+			var evt:SuperLoaderEvent = new SuperLoaderEvent(SuperLoaderEvent.IMAGE_TYPE_IDENTIFIED);
+			evt.url = _request.url;
+			evt.imageType = _imageType;
+			dispatchEvent(evt);
+			
 			return;
 		}
 		
 		
 			
-		private function parseAsJPEG():void{
+		protected function parseAsJPEG():void{
 			var format:Number;
 			var marker:Number;
 			var start:Number;
@@ -117,7 +123,7 @@ package com.arpitonline.superLoader
 				data.position = 3;
 				format = data.readUnsignedByte();					
 		
-				while( marker != 0xC0 ){
+				while( marker != 0xC0 && marker != 0xC1 && marker != 0xC2 && marker != 0xC3 ){
 					start = data.readUnsignedShort() - 1;
 					data.position = data.position + start;
 					marker = data.readUnsignedByte();							
@@ -126,37 +132,73 @@ package com.arpitonline.superLoader
 				data.position = data.position + 3;
 				_imageHeight = data.readUnsignedShort();
 				_imageWidth = data.readUnsignedShort();
-				dispatchEvent(new SuperLoaderEvent(SuperLoaderEvent.IMAGE_SIZE_IDENTIFIED));
+				
+				var evt:SuperLoaderEvent = new SuperLoaderEvent(SuperLoaderEvent.IMAGE_SIZE_IDENTIFIED);
+				evt.url = _request.url;
+				evt.imageType = _imageType;
+				evt.imageWidth = _imageWidth;
+				evt.imageHeight = _imageHeight;
+				dispatchEvent(evt);
+				
+				parseFunction = null;
+				
 			}catch(e:EOFError){
 				trace("[Error]")
 			}
 		}
 		
-		private function parseAsPNG():void{
+		protected function parseAsPNG():void{
 			try{
 				data.position = 16;							
 				_imageWidth = data.readUnsignedInt();
 				_imageHeight = data.readUnsignedInt();
-				dispatchEvent(new SuperLoaderEvent(SuperLoaderEvent.IMAGE_SIZE_IDENTIFIED));
+				
+				var evt:SuperLoaderEvent = new SuperLoaderEvent(SuperLoaderEvent.IMAGE_SIZE_IDENTIFIED);
+				evt.url = _request.url;
+				evt.imageType = _imageType;
+				evt.imageWidth = _imageWidth;
+				evt.imageHeight = _imageHeight;
+				dispatchEvent(evt);
+				
+				parseFunction = null;
+				
 			}catch(e:Error){
 				trace("[Error]")
 			}
 		}
 		
-		private function parseAsGIF():void{
+		protected function parseAsGIF():void{
 			try{
 				data.position = 6;
 				data.endian = Endian.LITTLE_ENDIAN;
 				_imageWidth = data.readUnsignedShort();
 				_imageHeight = data.readUnsignedShort();
-				dispatchEvent(new SuperLoaderEvent(SuperLoaderEvent.IMAGE_SIZE_IDENTIFIED));
+				
+				var evt:SuperLoaderEvent = new SuperLoaderEvent(SuperLoaderEvent.IMAGE_SIZE_IDENTIFIED);
+				evt.url = _request.url;
+				evt.imageType = _imageType;
+				evt.imageWidth = _imageWidth;
+				evt.imageHeight = _imageHeight;
+				dispatchEvent(evt);
+				
+				parseFunction = null;
+				
 			}catch(e:Error){
 				trace("[Error]")
 			}
 		}
 		
-		private function onLoadComplete(event:Event):void{
-			dispatchEvent(new Event(Event.COMPLETE));
+		protected function onLoadComplete(event:Event):void{
+			var evt:SuperLoaderEvent = new SuperLoaderEvent(SuperLoaderEvent.LOAD_COMPLETE);
+			evt.url = _request.url;
+			evt.imageType = _imageType;
+			evt.imageWidth = _imageWidth;
+			evt.imageHeight = _imageHeight;
+			dispatchEvent(evt);
+		}
+		
+		protected function onSecurityError(event:Event):void{
+			dispatchEvent(event);
 		}
 		
 		public function get imageType():String{
@@ -173,6 +215,10 @@ package com.arpitonline.superLoader
 		
 		public function get imageByteArray():ByteArray{
 			return data;
+		}
+		
+		public function abort():void{
+			_stream.close();
 		}
 	}
 }
