@@ -46,16 +46,18 @@ package com.arpitonline.superLoader
 		
 		public function load(fileURL:String):void{
 			var request:URLRequest = new URLRequest(fileURL);
-			data  = new ByteArray();
 			loadRequest(request);
 		}
 		
 		
 		public function loadRequest(urlRequest:URLRequest):void{
+			_imageType = null;
 			_imageWidth = _imageHeight = NaN;
 			_request = urlRequest;
 			_stream.load(_request);
 			
+			data  = new ByteArray();
+			parseFunction = null;
 		}
 		
 		protected var parseFunction:Function;
@@ -217,6 +219,10 @@ package com.arpitonline.superLoader
 		
 		public function get imageByteArray():ByteArray{
 			return data;
+		}
+		
+		public function get urlRequest():URLRequest{
+			return _request;
 		}
 		
 		public function abort():void{
