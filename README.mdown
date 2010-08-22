@@ -1,0 +1,59 @@
+The MIT License
+
+Copyright (c) 2010 Arpit Mathur
+http://arpitonline.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
+**About**:
+
+SuperLoader is a small library for ActionScript 3 that enables better handling of image URLs,
+especially when the images that are being loaded are beyond your control and determined at
+runtime.
+SuperLoader allows you to load an image URL and dispatches events as soon as it detects the 
+image type (jpeg, gif or png) as well as as soon as it discovers the dimensions of the image by
+parsing the raw stream as the file is being downloaded. It also allows the transfer to be 
+aborted at any time before the image is downloaded.
+
+**Usage:**
+
+
+	
+	var loader:SuperLoader = new SuperLoader();
+	loader.addEventListener(SuperLoaderEvent.IMAGE_TYPE_IDENTIFIED, onImageTypeIdentified)
+	loader.addEventListener(SuperLoaderEvent.IMAGE_SIZE_IDENTIFIED, onImageSizeIdentified);
+	loader.addEventListener(SuperLoaderEvent.LOAD_COMPLETE, onLoadComplete);
+
+	private function onImageTypeIdentified(event:SuperLoaderEvent):void{
+		trace(loader.imageType)
+	}
+
+	private function onImageSizeIdentified(event:SuperLoaderEvent):void{
+		if(loader.imageWidth < 20 || loader.imageHeight < 20){
+			loader.abort();
+		}
+	}
+
+	private function onLoadComplete(event:SuperLoaderEvent):void{
+		var image:Loader = new Loader();
+		addChild(image)
+		image.loadBytes(loader.data)	
+	}
+
