@@ -3,6 +3,7 @@ package com.arpitonline.superLoader
 	import flash.errors.EOFError;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	import flash.events.IOErrorEvent;
 	import flash.events.ProgressEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.net.URLRequest;
@@ -25,6 +26,11 @@ package com.arpitonline.superLoader
 	 */ 
 	[Event(name="loadComplete", type="com.arpitonline.superLoader.SuperLoaderEvent")]
 	
+	/**
+	 * Dispatched on IOError
+	 */ 
+	[Event(name="ioError", type="flash.events.IOErrorEvent")]
+	
 	public class SuperLoader extends EventDispatcher{
 		
 		private var _stream:URLStream;
@@ -42,6 +48,7 @@ package com.arpitonline.superLoader
 			_stream.addEventListener(ProgressEvent.PROGRESS, onStreamProgress);
 			_stream.addEventListener(Event.COMPLETE, onLoadComplete);
 			_stream.addEventListener(SecurityErrorEvent.SECURITY_ERROR, onSecurityError);
+			_stream.addEventListener(IOErrorEvent.IO_ERROR, onIOError);
 		}
 		
 		public function load(fileURL:String):void{
@@ -205,6 +212,10 @@ package com.arpitonline.superLoader
 			dispatchEvent(event);
 		}
 		
+		protected function onIOError(event:IOErrorEvent):void{
+			dispatchEvent(event);
+		}
+		
 		public function get imageType():String{
 			return _imageType;
 		}
@@ -226,7 +237,9 @@ package com.arpitonline.superLoader
 		}
 		
 		public function abort():void{
-			_stream.close();
+			if(_stream.connected){
+				_stream.close();
+			}
 		}
 	}
 }
